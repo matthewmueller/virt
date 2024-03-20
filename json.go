@@ -25,15 +25,11 @@ type jsonEntry struct {
 
 func (f *jsonEntry) Open() fs.File {
 	if f.Mode.IsDir() {
-		entries := make([]fs.DirEntry, len(f.Entries))
-		for i, entry := range f.Entries {
-			entries[i] = entry
-		}
 		return &openDir{&File{
 			Path:    f.Path,
 			Mode:    f.Mode,
 			ModTime: f.ModTime,
-			Entries: entries,
+			Entries: f.Entries,
 		}, 0}
 	}
 	return &openFile{&File{

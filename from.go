@@ -3,6 +3,7 @@ package virt
 import (
 	"io"
 	"io/fs"
+	"sort"
 )
 
 // From a file to a virtual file
@@ -19,6 +20,20 @@ func From(file fs.File) (entry *File, err error) {
 	return fromFile(file, stat)
 }
 
+// FromEntry converts a fs.DirEntry to a virtual DirEntry
+func FromEntry(de fs.DirEntry) (*DirEntry, error) {
+	info, err := de.Info()
+	if err != nil {
+		return nil, err
+	}
+	return &DirEntry{
+		Path:    de.Name(),
+		Mode:    info.Mode(),
+		ModTime: info.ModTime(),
+		Size:    info.Size(),
+	}, nil
+}
+
 func fromDir(file fs.File, stat fs.FileInfo) (entry *File, err error) {
 	vdir := &File{
 		Path:    stat.Name(),
@@ -30,7 +45,16 @@ func fromDir(file fs.File, stat fs.FileInfo) (entry *File, err error) {
 		if err != nil {
 			return nil, err
 		}
-		vdir.Entries = append(vdir.Entries, des...)
+		for _, de := range des {
+			vde, err := FromEntry(de)
+			if err != nil {
+				return nil, err
+			}
+			vdir.Entries = append(vdir.Entries, vde)
+		}
+		sort.Slice(vdir.Entries, func(i, j int) bool {
+			return vdir.Entries[i].Name() < vdir.Entries[j].Name()
+		})
 	}
 	return vdir, nil
 }

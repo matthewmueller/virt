@@ -12,9 +12,9 @@ func TestDuplicateDirEntriesNotHandled(t *testing.T) {
 	is := is.New(t)
 	dir := &virt.File{
 		Mode: fs.ModeDir,
-		Entries: []fs.DirEntry{
-			&virt.File{Path: "a", Mode: fs.ModeDir},
-			&virt.File{Path: "a", Mode: fs.ModeDir},
+		Entries: []*virt.DirEntry{
+			(&virt.File{Path: "a", Mode: fs.ModeDir}).Entry(),
+			(&virt.File{Path: "a", Mode: fs.ModeDir}).Entry(),
 		},
 	}
 	file := virt.Open(dir)

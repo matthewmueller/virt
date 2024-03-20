@@ -43,14 +43,14 @@ func TestDir(t *testing.T) {
 		Path:    "a/b.txt",
 		ModTime: now,
 		Mode:    fs.ModeDir | 0755,
-		Entries: []fs.DirEntry{
-			&virt.DirEntry{
+		Entries: []*virt.DirEntry{
+			{
 				Path:    "c.txt",
 				ModTime: now,
 				Mode:    0644,
 				Size:    10,
 			},
-			&virt.DirEntry{
+			{
 				Path:    "d.txt",
 				ModTime: now,
 				Mode:    0644,

@@ -14,7 +14,7 @@ type File struct {
 	Data    []byte
 	Mode    fs.FileMode
 	ModTime time.Time
-	Entries []fs.DirEntry
+	Entries []*DirEntry
 }
 
 var _ fs.DirEntry = (*File)(nil)
@@ -42,6 +42,16 @@ func (f *File) Info() (fs.FileInfo, error) {
 		modTime: f.ModTime,
 		size:    int64(len(f.Data)),
 	}, nil
+}
+
+// Entry returns a DirEntry for the file.
+func (f *File) Entry() *DirEntry {
+	return &DirEntry{
+		Path:    f.Path,
+		Size:    int64(len(f.Data)),
+		Mode:    f.Mode,
+		ModTime: f.ModTime,
+	}
 }
 
 // Embed as a string literal.

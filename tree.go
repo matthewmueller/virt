@@ -32,7 +32,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 	// Note that file can be nil here: the map need not contain explicit parent directories for all its files.
 	// But file can also be non-nil, in case the user wants to set metadata for the directory explicitly.
 	// Either way, we need to construct the list of children of this directory.
-	var des []fs.DirEntry
+	var des []*DirEntry
 	var need = make(map[string]bool)
 	if path == "." {
 		for fname, file := range fsys {
@@ -40,7 +40,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 			if i < 0 {
 				if fname != "." {
 					file.Path = fname
-					des = append(des, file)
+					des = append(des, file.Entry())
 				}
 			} else {
 				need[fname[:i]] = true
@@ -54,7 +54,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 				i := strings.Index(felem, "/")
 				if i < 0 {
 					file.Path = felem
-					des = append(des, file)
+					des = append(des, file.Entry())
 				} else {
 					need[fname[len(prefix):len(prefix)+i]] = true
 				}
@@ -72,7 +72,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 	}
 	for path := range need {
 		dir := &File{path, nil, fs.ModeDir, time.Time{}, nil}
-		des = append(des, dir)
+		des = append(des, dir.Entry())
 	}
 	sort.Slice(des, func(i, j int) bool {
 		return des[i].Name() < des[j].Name()
