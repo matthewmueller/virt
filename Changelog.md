@@ -1,3 +1,10 @@
+# 0.0.2 / 2024-03-20
+
+- Switch `virt.File` to use `*virt.DirEntry` instead of `fs.DirEntry`.
+- Add `file.Entry()` and `virt.FromEntry(de)`
+- Fix `From(file)` not sorting directory entries.
+- add test confirming duplicate dir entries aren't handled. expected to handle outside
+
 # 0.0.1 / 2024-02-21
 
 - initial commit
