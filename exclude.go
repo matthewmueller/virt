@@ -5,12 +5,12 @@ import (
 	"path"
 )
 
-func Exclude(fsys FS, fn func(path string) bool) FS {
+func Exclude(fsys fs.FS, fn func(path string) bool) fs.FS {
 	return &exclude{fsys, fn}
 }
 
 type exclude struct {
-	FS
+	fs.FS
 	fn func(path string) bool
 }
 

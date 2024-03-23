@@ -4,7 +4,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -194,16 +193,17 @@ func TestSyncExclude(t *testing.T) {
 		"bud/controller.go": &virt.File{Data: []byte("package controller")},
 	}
 	to = virt.Tree{
-		"node_modules/svelte/svelte.js": &virt.File{Data: []byte("svelte")},
-		"bud/generate.go":               &virt.File{Data: []byte("package main")},
+		"index.svelte":    &virt.File{Data: []byte("<h1>index2</h1>")},
+		"bud/generate.go": &virt.File{Data: []byte("package main")},
 	}
-	excluded := virt.Exclude(to, func(path string) bool {
-		return strings.HasPrefix(path, "node_modules") ||
-			path == "bud/generate.go"
+	excluded := virt.Exclude(from, func(path string) bool {
+		return path == "bud/controller.go"
 	})
-	err = virt.SyncFS(from, excluded, ".")
+	err = virt.SyncFS(excluded, to, ".")
 	is.NoErr(err)
-	is.Equal(len(to), 4) // this should have kept node_modules & generate
+	// this should only keep index.svelte
+	is.Equal(len(to), 1)
+	is.Equal(to["index.svelte"].Data, []byte("<h1>index</h1>"))
 }
 
 func TestSyncAvoidDotCreate(t *testing.T) {
