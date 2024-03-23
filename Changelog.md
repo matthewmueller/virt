@@ -1,3 +1,7 @@
+# 0.0.3 / 2024-03-23
+
+- make exclude work on fs.FS
+
 # 0.0.2 / 2024-03-20
 
 - Switch `virt.File` to use `*virt.DirEntry` instead of `fs.DirEntry`.
