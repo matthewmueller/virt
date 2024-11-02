@@ -3,11 +3,12 @@ package virt
 import (
 	"io"
 	"io/fs"
+	"path"
 	"sort"
 )
 
 // From a file to a virtual file
-func From(file fs.File) (entry *File, err error) {
+func From(path string, file fs.File) (entry *File, err error) {
 	// Get the stats
 	stat, err := file.Stat()
 	if err != nil {
@@ -15,28 +16,28 @@ func From(file fs.File) (entry *File, err error) {
 	}
 	// Copy the directory data over
 	if stat.IsDir() {
-		return fromDir(file, stat)
+		return fromDir(path, file, stat)
 	}
-	return fromFile(file, stat)
+	return fromFile(path, file, stat)
 }
 
 // FromEntry converts a fs.DirEntry to a virtual DirEntry
-func FromEntry(de fs.DirEntry) (*DirEntry, error) {
+func FromEntry(path string, de fs.DirEntry) (*DirEntry, error) {
 	info, err := de.Info()
 	if err != nil {
 		return nil, err
 	}
 	return &DirEntry{
-		Path:    de.Name(),
+		Path:    path,
 		Mode:    info.Mode(),
 		ModTime: info.ModTime(),
 		Size:    info.Size(),
 	}, nil
 }
 
-func fromDir(file fs.File, stat fs.FileInfo) (entry *File, err error) {
+func fromDir(dirPath string, file fs.File, stat fs.FileInfo) (entry *File, err error) {
 	vdir := &File{
-		Path:    stat.Name(),
+		Path:    dirPath,
 		ModTime: stat.ModTime(),
 		Mode:    stat.Mode(),
 	}
@@ -46,7 +47,7 @@ func fromDir(file fs.File, stat fs.FileInfo) (entry *File, err error) {
 			return nil, err
 		}
 		for _, de := range des {
-			vde, err := FromEntry(de)
+			vde, err := FromEntry(path.Join(dirPath, de.Name()), de)
 			if err != nil {
 				return nil, err
 			}
@@ -59,14 +60,14 @@ func fromDir(file fs.File, stat fs.FileInfo) (entry *File, err error) {
 	return vdir, nil
 }
 
-func fromFile(file fs.File, stat fs.FileInfo) (entry *File, err error) {
+func fromFile(path string, file fs.File, stat fs.FileInfo) (entry *File, err error) {
 	// Read the data fully
 	data, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
 	return &File{
-		Path:    stat.Name(),
+		Path:    path,
 		Data:    data,
 		ModTime: stat.ModTime(),
 		Mode:    stat.Mode(),

@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func MarshalJSON(file fs.File) ([]byte, error) {
-	entry, err := From(file)
+func MarshalJSON(path string, file fs.File) ([]byte, error) {
+	entry, err := From(path, file)
 	if err != nil {
 		return nil, err
 	}
