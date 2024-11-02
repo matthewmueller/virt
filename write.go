@@ -22,8 +22,6 @@ func WriteFS(from fs.FS, to FS, subpaths ...string) error {
 	return fs.WalkDir(from, target, func(fpath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
-		} else if fpath == "." {
-			return nil
 		}
 		if d.IsDir() {
 			mode := d.Type()
