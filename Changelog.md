@@ -1,3 +1,7 @@
+# 0.0.4 / 2024-11-02
+
+- don't skip . when writing, it might not exist
+
 # 0.0.3 / 2024-03-23
 
 - make exclude work on fs.FS
