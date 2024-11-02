@@ -1,3 +1,7 @@
+# 0.0.5 / 2024-11-02
+
+- breaking: require path when using virt.From, virt.FromEntry and virt.MarshalJSON
+
 # 0.0.4 / 2024-11-02
 
 - don't skip . when writing, it might not exist
