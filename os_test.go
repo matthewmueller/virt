@@ -51,5 +51,6 @@ func TestTruncateDoesntChangeStat(t *testing.T) {
 	is.NoErr(os.WriteFile(filepath.Join(dir, "a.txt"), []byte("b"), 0755))
 	info, err := os.Stat(filepath.Join(dir, "a.txt"))
 	is.NoErr(err)
+	// Note that the mode is still 0644
 	is.Equal(info.Mode(), os.FileMode(0644))
 }
