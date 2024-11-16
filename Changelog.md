@@ -1,3 +1,7 @@
+# 0.0.6 / 2024-11-16
+
+- support syncing and writing different file modes
+
 # 0.0.5 / 2024-11-02
 
 - breaking: require path when using virt.From, virt.FromEntry and virt.MarshalJSON
