@@ -43,3 +43,13 @@ func TestOSRemoveAll(t *testing.T) {
 	err := fsys.RemoveAll("a.txt")
 	is.NoErr(err)
 }
+
+func TestTruncateDoesntChangeStat(t *testing.T) {
+	is := is.New(t)
+	dir := t.TempDir()
+	is.NoErr(os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0644))
+	is.NoErr(os.WriteFile(filepath.Join(dir, "a.txt"), []byte("b"), 0755))
+	info, err := os.Stat(filepath.Join(dir, "a.txt"))
+	is.NoErr(err)
+	is.Equal(info.Mode(), os.FileMode(0644))
+}

@@ -111,3 +111,16 @@ func TestWrite(t *testing.T) {
 	is.Equal(des[1].Name(), "e.txt")
 	is.Equal(des[2].Name(), "sub")
 }
+
+func TestWriteExecutable(t *testing.T) {
+	is := is.New(t)
+	from := virt.Tree{
+		"exe": &virt.File{Data: []byte("exe"), Mode: 0755},
+	}
+	toDir := t.TempDir()
+	err := virt.Write(from, toDir)
+	is.NoErr(err)
+	info, err := fs.Stat(virt.OS(toDir), "exe")
+	is.NoErr(err)
+	is.Equal(info.Mode(), fs.FileMode(0755))
+}

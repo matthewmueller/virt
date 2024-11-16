@@ -143,7 +143,12 @@ func createOps(from fs.FS, dir string, des []fs.DirEntry) (ops []syncOp, err err
 				}
 				return nil, err
 			}
-			ops = append(ops, syncOp{createType, fpath, data, de.Type()})
+			// Get the mode
+			info, err := de.Info()
+			if err != nil {
+				return nil, err
+			}
+			ops = append(ops, syncOp{createType, fpath, data, info.Mode()})
 			continue
 		}
 		des, err := fs.ReadDir(from, fpath)
@@ -170,7 +175,7 @@ func deleteOps(dir string, des []fs.DirEntry) (ops []syncOp, err error) {
 			continue
 		}
 		fpath := path.Join(dir, de.Name())
-		ops = append(ops, syncOp{deleteType, fpath, nil, de.Type()})
+		ops = append(ops, syncOp{deleteType, fpath, nil, 0})
 		continue
 	}
 	return ops, nil
@@ -209,12 +214,27 @@ func updateOps(from fs.FS, to FS, dir string, des []fs.DirEntry) (ops []syncOp, 
 			// Don't error out on files that don't exist
 			if errors.Is(err, fs.ErrNotExist) {
 				// The file no longer exists, delete it
-				ops = append(ops, syncOp{deleteType, fpath, nil, de.Type()})
+				ops = append(ops, syncOp{deleteType, fpath, nil, 0})
 				continue
 			}
 			return nil, err
 		}
-		ops = append(ops, syncOp{updateType, fpath, data, de.Type()})
+		// Get the mode
+		fromInfo, err := fs.Stat(from, fpath)
+		if err != nil {
+			return nil, err
+		}
+		toInfo, err := fs.Stat(to, fpath)
+		if err != nil {
+			return nil, err
+		}
+		// If the mode has changed, delete the file and create a new one
+		// Because WriteFile with different file modes doesn't actually update
+		// the file mode
+		if fromInfo.Mode() != toInfo.Mode() {
+			ops = append(ops, syncOp{deleteType, fpath, nil, 0})
+		}
+		ops = append(ops, syncOp{updateType, fpath, data, fromInfo.Mode()})
 	}
 	return ops, nil
 }

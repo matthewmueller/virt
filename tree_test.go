@@ -225,3 +225,26 @@ func TestTreeSub(t *testing.T) {
 	err = sub.RemoveAll("../index.svelte")
 	is.Equal(errors.Is(err, fs.ErrInvalid), true)
 }
+
+func TestTreeWalkBinary(t *testing.T) {
+	is := is.New(t)
+	fsys := &virt.Tree{
+		"chunky": &virt.File{
+			Data: []byte(`some executable`),
+			Mode: 0755,
+		},
+	}
+	err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		is.NoErr(err)
+		if path == "." {
+			return nil
+		}
+		is.Equal(d.Name(), "chunky")
+		is.Equal(d.IsDir(), false)
+		info, err := d.Info()
+		is.NoErr(err)
+		is.Equal(info.Mode(), fs.FileMode(0755))
+		return nil
+	})
+	is.NoErr(err)
+}

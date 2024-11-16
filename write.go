@@ -23,8 +23,14 @@ func WriteFS(from fs.FS, to FS, subpaths ...string) error {
 		if err != nil {
 			return err
 		}
+		// Get the mode
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		mode := info.Mode()
+		// Handle directories
 		if d.IsDir() {
-			mode := d.Type()
 			// Many of the virtual filesystems don't set a mode. Writing these to an
 			// actual filesystem will cause permission errors, so we'll use common
 			// permissions when not explicitly set.
@@ -40,7 +46,6 @@ func WriteFS(from fs.FS, to FS, subpaths ...string) error {
 		// Many of the virtual filesystems don't set a mode. Writing these to an
 		// actual filesystem will cause permission errors, so we'll use common
 		// permissions when not explicitly set.
-		mode := d.Type()
 		if mode == 0 {
 			mode = 0644
 		}

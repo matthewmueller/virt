@@ -270,3 +270,33 @@ func TestSync(t *testing.T) {
 	is.NoErr(err)
 	is.Equal(string(code), "b")
 }
+
+func TestSyncNewExecutable(t *testing.T) {
+	is := is.New(t)
+	from := virt.Tree{
+		"exe": &virt.File{Data: []byte("exe"), Mode: 0755},
+	}
+	toDir := t.TempDir()
+	err := virt.Sync(from, toDir)
+	is.NoErr(err)
+	info, err := fs.Stat(virt.OS(toDir), "exe")
+	is.NoErr(err)
+	is.Equal(info.Mode(), fs.FileMode(0755))
+}
+
+func TestSyncUpdateExecutable(t *testing.T) {
+	is := is.New(t)
+	toDir := t.TempDir()
+	is.NoErr(os.WriteFile(filepath.Join(toDir, "exe"), []byte("exe2"), 0644))
+	from := virt.Tree{
+		"exe": &virt.File{Data: []byte("exe1"), Mode: 0755},
+	}
+	err := virt.Sync(from, toDir)
+	is.NoErr(err)
+	data, err := os.ReadFile(filepath.Join(toDir, "exe"))
+	is.NoErr(err)
+	is.Equal(string(data), "exe1")
+	info, err := os.Stat(filepath.Join(toDir, "exe"))
+	is.NoErr(err)
+	is.Equal(info.Mode(), fs.FileMode(0755))
+}
