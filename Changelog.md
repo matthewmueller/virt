@@ -1,3 +1,8 @@
+# 0.0.7 / 2024-12-12
+
+- add `fsys := virt.Merge(a, b, ...)` for merging `fs.FS` filesystems together
+- add `fsys := virt.Mount("some/mounted/dir", nestedFs)` for mounting a nested filesystem
+
 # 0.0.6 / 2024-11-16
 
 - support syncing and writing different file modes
