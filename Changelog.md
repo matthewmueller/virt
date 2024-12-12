@@ -1,3 +1,7 @@
+# 0.0.8 / 2024-12-12
+
+- skip over permission and missing file errors when printing
+
 # 0.0.7 / 2024-12-12
 
 - add `fsys := virt.Merge(a, b, ...)` for merging `fs.FS` filesystems together
