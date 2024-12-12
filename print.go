@@ -1,6 +1,7 @@
 package virt
 
 import (
+	"errors"
 	"io/fs"
 	"path"
 	"path/filepath"
@@ -19,6 +20,9 @@ func Print(fsys fs.FS, subpaths ...string) (string, error) {
 	tree.SetValue(dir)
 	err := fs.WalkDir(fsys, dir, func(path string, de fs.DirEntry, err error) error {
 		if err != nil {
+			if ignoreError(err) {
+				return nil
+			}
 			return err
 		} else if path == "." {
 			return nil
@@ -38,4 +42,10 @@ func Print(fsys fs.FS, subpaths ...string) (string, error) {
 		return "", err
 	}
 	return tree.String(), nil
+}
+
+// Skip over permission errors and missing files. This is similar to ls.
+func ignoreError(err error) bool {
+	return errors.Is(err, fs.ErrPermission) ||
+		errors.Is(err, fs.ErrNotExist)
 }
