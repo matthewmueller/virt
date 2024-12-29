@@ -1,3 +1,13 @@
+# 0.0.9 / 2024-12-29
+
+More helpers for transforming to and from `fs.File` and `*virt.File`
+
+- Breaking:
+  - Renamed `From` to `FromFile`
+  - Renamed `Open` to `To`
+- Added:
+  - `From(fsys fs.FS, path string) (*virt.File, error)`
+
 # 0.0.8 / 2024-12-12
 
 - skip over permission and missing file errors when printing
