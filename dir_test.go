@@ -17,7 +17,7 @@ func TestDuplicateDirEntriesNotHandled(t *testing.T) {
 			(&virt.File{Path: "a", Mode: fs.ModeDir}).Entry(),
 		},
 	}
-	file := virt.Open(dir)
+	file := virt.To(dir)
 	defer file.Close()
 	readDir, ok := file.(fs.ReadDirFile)
 	is.True(ok)

@@ -9,6 +9,25 @@ import (
 	"github.com/matryer/is"
 )
 
+func TestFrom(t *testing.T) {
+	is := is.New(t)
+	dir := t.TempDir()
+	is.NoErr(os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0644))
+	fsys := os.DirFS(dir)
+	file, err := fsys.Open("a.txt")
+	is.NoErr(err)
+	defer file.Close()
+	vfile, err := From(fsys, "a.txt")
+	is.NoErr(err)
+	fi, err := file.Stat()
+	is.NoErr(err)
+	is.Equal(vfile.Path, "a.txt")
+	is.Equal(vfile.Data, []byte("a"))
+	is.Equal(vfile.ModTime, fi.ModTime())
+	is.Equal(vfile.Mode, fi.Mode())
+	is.Equal(vfile.Entry().Size, fi.Size())
+}
+
 func TestFromFile(t *testing.T) {
 	is := is.New(t)
 	dir := t.TempDir()
@@ -17,7 +36,7 @@ func TestFromFile(t *testing.T) {
 	file, err := fsys.Open("a.txt")
 	is.NoErr(err)
 	defer file.Close()
-	vfile, err := From("a.txt", file)
+	vfile, err := FromFile("a.txt", file)
 	is.NoErr(err)
 	fi, err := file.Stat()
 	is.NoErr(err)
@@ -37,7 +56,7 @@ func TestFromDir(t *testing.T) {
 	file, err := fsys.Open(".")
 	is.NoErr(err)
 	defer file.Close()
-	vfile, err := From(".", file)
+	vfile, err := FromFile(".", file)
 	is.NoErr(err)
 	fi, err := file.Stat()
 	is.NoErr(err)

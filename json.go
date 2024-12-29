@@ -7,7 +7,7 @@ import (
 )
 
 func MarshalJSON(path string, file fs.File) ([]byte, error) {
-	entry, err := From(path, file)
+	entry, err := FromFile(path, file)
 	if err != nil {
 		return nil, err
 	}

@@ -7,8 +7,27 @@ import (
 	"sort"
 )
 
-// From a file to a virtual file
-func From(path string, file fs.File) (entry *File, err error) {
+// FromFile a file to a virtual file
+func From(fsys fs.FS, path string) (entry *File, err error) {
+	file, err := fsys.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	// Get the stats
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	// Copy the directory data over
+	if stat.IsDir() {
+		return fromDir(path, file, stat)
+	}
+	return fromFile(path, file, stat)
+}
+
+// FromFile a file to a virtual file
+func FromFile(path string, file fs.File) (*File, error) {
 	// Get the stats
 	stat, err := file.Stat()
 	if err != nil {

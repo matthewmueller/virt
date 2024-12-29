@@ -20,7 +20,7 @@ func TestFile(t *testing.T) {
 		ModTime: now,
 		Mode:    0644,
 	}
-	result, err := virt.MarshalJSON(expect.Path, virt.Open(expect))
+	result, err := virt.MarshalJSON(expect.Path, virt.To(expect))
 	is.NoErr(err)
 	actual, err := virt.UnmarshalJSON(result)
 	is.NoErr(err)
@@ -58,7 +58,7 @@ func TestDir(t *testing.T) {
 			},
 		},
 	}
-	result, err := virt.MarshalJSON(expect.Path, virt.Open(expect))
+	result, err := virt.MarshalJSON(expect.Path, virt.To(expect))
 	is.NoErr(err)
 	actual, err := virt.UnmarshalJSON(result)
 	is.NoErr(err)
