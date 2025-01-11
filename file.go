@@ -19,6 +19,8 @@ type File struct {
 }
 
 var _ fs.DirEntry = (*File)(nil)
+var _ io.Writer = (*File)(nil)
+var _ io.StringWriter = (*File)(nil)
 
 // Name of the entry. Implements the fs.DirEntry interface.
 func (f *File) Name() string {
@@ -93,6 +95,17 @@ func (f *File) Hash(h hash.Hash) []byte {
 		h.Write(f.Data)
 	}
 	return h.Sum(nil)
+}
+
+// Write data to the file
+func (f *File) Write(p []byte) (int, error) {
+	f.Data = append(f.Data, p...)
+	return len(p), nil
+}
+
+// WriteString writes a string to the file
+func (f *File) WriteString(s string) (int, error) {
+	return f.Write([]byte(s))
 }
 
 type openFile struct {
