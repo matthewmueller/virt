@@ -23,7 +23,7 @@ func (s *subFS) Open(name string) (fs.File, error) {
 	return s.OpenFile(name, os.O_RDONLY, 0)
 }
 
-func (s *subFS) OpenFile(name string, flag int, perm fs.FileMode) (VFile, error) {
+func (s *subFS) OpenFile(name string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: fs.ErrInvalid}
 	}

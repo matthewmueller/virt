@@ -19,7 +19,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 	return fsys.OpenFile(path, os.O_RDONLY, 0)
 }
 
-func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (VFile, error) {
+func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "Open", Path: path, Err: fs.ErrInvalid}
 	} else if flag != os.O_RDONLY {

@@ -18,7 +18,7 @@ func (dir OS) Open(name string) (fs.File, error) {
 	return dir.OpenFile(name, os.O_RDONLY, 0)
 }
 
-func (dir OS) OpenFile(name string, flag int, perm fs.FileMode) (VFile, error) {
+func (dir OS) OpenFile(name string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: fs.ErrInvalid}
 	}

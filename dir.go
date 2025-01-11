@@ -17,7 +17,7 @@ var _ fs.DirEntry = (*openDir)(nil)
 
 var _ fs.File = (*openDir)(nil)
 var _ fs.ReadDirFile = (*openDir)(nil)
-var _ VFile = (*openDir)(nil)
+var _ RWFile = (*openDir)(nil)
 
 func (d *openDir) Close() error {
 	return nil
