@@ -1,3 +1,7 @@
+# 0.0.12 / 2025-01-11
+
+- support incrementally writing data to virtual file
+
 # 0.0.11 / 2025-01-11
 
 - fix and rename interface
