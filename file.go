@@ -1,6 +1,7 @@
 package virt
 
 import (
+	"hash"
 	"io"
 	"io/fs"
 	"path"
@@ -80,8 +81,23 @@ func (f *File) Stamp() (stamp string, err error) {
 	return stamp, nil
 }
 
+// Hash the results of a file
+func (f *File) Hash(h hash.Hash) []byte {
+	if f.Path != "" {
+		h.Write([]byte(f.Path))
+	}
+	if f.Mode != 0 {
+		h.Write([]byte(f.Mode.String()))
+	}
+	if f.Data != nil {
+		h.Write(f.Data)
+	}
+	return h.Sum(nil)
+}
+
 type openFile struct {
 	*File
+	flag   int
 	offset int64
 }
 
@@ -91,6 +107,12 @@ var _ fs.DirEntry = (*openFile)(nil)
 
 func (f *openFile) Close() error {
 	return nil
+}
+
+func (f *openFile) Write(p []byte) (int, error) {
+	n := copy(f.Data[f.offset:], p)
+	f.offset += int64(n)
+	return n, nil
 }
 
 func (f *openFile) Read(b []byte) (int, error) {

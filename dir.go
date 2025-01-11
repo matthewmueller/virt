@@ -7,6 +7,7 @@ import (
 
 type openDir struct {
 	*File
+	flag   int
 	offset int
 }
 
@@ -16,6 +17,7 @@ var _ fs.DirEntry = (*openDir)(nil)
 
 var _ fs.File = (*openDir)(nil)
 var _ fs.ReadDirFile = (*openDir)(nil)
+var _ VFile = (*openDir)(nil)
 
 func (d *openDir) Close() error {
 	return nil
@@ -23,6 +25,10 @@ func (d *openDir) Close() error {
 
 func (d *openDir) Stat() (fs.FileInfo, error) {
 	return d.Info()
+}
+
+func (d *openDir) Write(p []byte) (int, error) {
+	return 0, &fs.PathError{Op: "write", Path: d.Path, Err: fs.ErrInvalid}
 }
 
 func (d *openDir) Read(p []byte) (int, error) {

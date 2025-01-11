@@ -15,10 +15,21 @@ type OS string
 var _ FS = (OS)("")
 
 func (dir OS) Open(name string) (fs.File, error) {
+	return dir.OpenFile(name, os.O_RDONLY, 0)
+}
+
+func (dir OS) OpenFile(name string, flag int, perm fs.FileMode) (VFile, error) {
 	if !fs.ValidPath(name) {
-		return nil, &fs.PathError{Op: "Open", Path: name, Err: fs.ErrInvalid}
+		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: fs.ErrInvalid}
 	}
-	return os.Open(filepath.Join(string(dir), name))
+	return os.OpenFile(filepath.Join(string(dir), name), flag, perm)
+}
+
+func (dir OS) ReadDir(name string) ([]fs.DirEntry, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "ReadDir", Path: name, Err: fs.ErrInvalid}
+	}
+	return os.ReadDir(filepath.Join(string(dir), name))
 }
 
 func (dir OS) MkdirAll(path string, perm fs.FileMode) error {

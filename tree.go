@@ -3,6 +3,7 @@ package virt
 import (
 	"errors"
 	"io/fs"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -15,6 +16,10 @@ type Tree map[string]*File
 var _ FS = (Tree)(nil)
 
 func (fsys Tree) Open(path string) (fs.File, error) {
+	return fsys.OpenFile(path, os.O_RDONLY, 0)
+}
+
+func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (VFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "Open", Path: path, Err: fs.ErrInvalid}
 	}
@@ -23,7 +28,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 		// Can be either a file or a empty directory
 		file.Path = path
 		if !file.IsDir() {
-			return &openFile{file, 0}, nil
+			return &openFile{file, flag, 0}, nil
 		}
 	}
 
@@ -83,7 +88,7 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 	}
 	// Return the synthesized entries as a directory.
 	file.Entries = des
-	return &openDir{file, 0}, nil
+	return &openDir{file, flag, 0}, nil
 }
 
 // Mkdir create a directory.

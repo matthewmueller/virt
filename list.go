@@ -1,7 +1,9 @@
 package virt
 
 import (
+	"errors"
 	"io/fs"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -15,8 +17,18 @@ type List []*File
 var _ FS = (*List)(nil)
 
 func (fsys List) Open(path string) (fs.File, error) {
+	return fsys.OpenFile(path, os.O_RDONLY, 0)
+}
+
+func (fsys List) OpenFile(path string, flag int, perm fs.FileMode) (VFile, error) {
 	if !fs.ValidPath(path) {
-		return nil, &fs.PathError{Op: "open", Path: path, Err: fs.ErrInvalid}
+		return nil, &fs.PathError{Op: "openfile", Path: path, Err: fs.ErrInvalid}
+	} else if flag != os.O_RDONLY {
+		return nil, &fs.PathError{
+			Op:   "openfile",
+			Path: path,
+			Err:  errors.New("flag not currently supported"),
+		}
 	}
 	file, ok := fsys.find(path)
 	if !ok {
@@ -25,7 +37,7 @@ func (fsys List) Open(path string) (fs.File, error) {
 	// Found a file or directory
 	file.Path = path
 	if !file.IsDir() {
-		return &openFile{file, 0}, nil
+		return &openFile{file, flag, 0}, nil
 	}
 	// The following logic is based on "testing/fstest".MapFS.Open
 	// Directory, possibly synthesized.
@@ -85,7 +97,7 @@ func (fsys List) Open(path string) (fs.File, error) {
 	}
 	// Return the synthesized entries as a directory.
 	file.Entries = des
-	return &openDir{file, 0}, nil
+	return &openDir{file, flag, 0}, nil
 }
 
 // Mkdir create a directory.

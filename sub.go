@@ -2,6 +2,7 @@ package virt
 
 import (
 	"io/fs"
+	"os"
 	"path"
 )
 
@@ -19,10 +20,14 @@ type subFS struct {
 }
 
 func (s *subFS) Open(name string) (fs.File, error) {
+	return s.OpenFile(name, os.O_RDONLY, 0)
+}
+
+func (s *subFS) OpenFile(name string, flag int, perm fs.FileMode) (VFile, error) {
 	if !fs.ValidPath(name) {
-		return nil, &fs.PathError{Op: "Open", Path: name, Err: fs.ErrInvalid}
+		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: fs.ErrInvalid}
 	}
-	return s.fs.Open(path.Join(s.dir, name))
+	return s.fs.OpenFile(path.Join(s.dir, name), flag, perm)
 }
 
 func (s *subFS) MkdirAll(name string, perm fs.FileMode) error {

@@ -30,14 +30,14 @@ func (f *jsonEntry) Open() fs.File {
 			Mode:    f.Mode,
 			ModTime: f.ModTime,
 			Entries: f.Entries,
-		}, 0}
+		}, 0, 0}
 	}
 	return &openFile{&File{
 		Path:    f.Path,
 		Data:    f.Data,
 		Mode:    f.Mode,
 		ModTime: f.ModTime,
-	}, 0}
+	}, 0, 0}
 }
 
 func UnmarshalJSON(file []byte) (fs.File, error) {
