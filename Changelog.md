@@ -1,3 +1,8 @@
+# 0.0.11 / 2025-01-11
+
+- fix and rename interface
+- add missing error check
+
 # 0.0.10 / 2025-01-11
 
 - initial support for a writable file interface.
