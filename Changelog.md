@@ -1,3 +1,9 @@
+# 0.0.10 / 2025-01-11
+
+- initial support for a writable file interface.
+  - Note: The `Tree` and `List` filesystems don't yet support writable files (PR welcome!)
+- add support for hashing files
+
 # 0.0.9 / 2024-12-29
 
 More helpers for transforming to and from `fs.File` and `*virt.File`
