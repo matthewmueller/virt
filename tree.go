@@ -22,6 +22,12 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (VFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "Open", Path: path, Err: fs.ErrInvalid}
+	} else if flag != os.O_RDONLY {
+		return nil, &fs.PathError{
+			Op:   "openfile",
+			Path: path,
+			Err:  errors.New("flag not currently supported"),
+		}
 	}
 	file, ok := fsys[path]
 	if ok {
