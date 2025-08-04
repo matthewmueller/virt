@@ -1,3 +1,7 @@
+# 0.0.13 / 2025-08-04
+
+- support fsys.Stat and fsys.LStat in virt.FS
+
 # 0.0.12 / 2025-01-11
 
 - support incrementally writing data to virtual file
