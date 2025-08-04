@@ -298,4 +298,18 @@ func TestTreeSymlinkLstat(t *testing.T) {
 	// Doesn't follow the symlink
 	is.Equal(info.Mode(), fs.FileMode(0755|fs.ModeSymlink))
 	is.Equal(info.Size(), int64(len("to.txt")))
+
+	link, err := fsys.Readlink("from.txt")
+	is.NoErr(err)
+	is.Equal(link, "to.txt")
+}
+
+func TestTreeReadDirInvalid(t *testing.T) {
+	is := is.New(t)
+	fsys := virt.Tree{
+		"a/b.txt": &virt.File{Data: []byte("b")},
+	}
+	des, err := fs.ReadDir(fsys, "a/b.txt")
+	is.Equal(err.Error(), "open a/b.txt: not a directory")
+	is.Equal(len(des), 0)
 }

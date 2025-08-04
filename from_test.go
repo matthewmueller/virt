@@ -13,7 +13,7 @@ func TestFrom(t *testing.T) {
 	is := is.New(t)
 	dir := t.TempDir()
 	is.NoErr(os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0644))
-	fsys := os.DirFS(dir)
+	fsys := OS(dir)
 	file, err := fsys.Open("a.txt")
 	is.NoErr(err)
 	defer file.Close()
@@ -102,4 +102,44 @@ func TestFromDirEntry(t *testing.T) {
 	is.Equal(dei.ModTime(), vdei.ModTime())
 	is.Equal(dei.Mode(), vdei.Mode())
 	is.Equal(dei.Size(), vdei.Size())
+}
+
+func TestFromSymlink(t *testing.T) {
+	is := is.New(t)
+	dir := t.TempDir()
+	is.NoErr(os.WriteFile(filepath.Join(dir, "to.txt"), []byte("to"), 0600))
+	is.NoErr(os.Symlink("to.txt", filepath.Join(dir, "from.txt")))
+
+	fsys := OS(dir)
+	file, err := From(fsys, "from.txt")
+	is.NoErr(err)
+	is.Equal(file.Path, "from.txt")
+	is.Equal(file.Data, []byte("to.txt"))
+	is.Equal(file.ModTime.IsZero(), false)
+	is.Equal(file.Mode, fs.FileMode(0755|fs.ModeSymlink))
+	is.Equal(file.Size(), int64(len("to.txt")))
+}
+
+func TestFromDirEntrySymlink(t *testing.T) {
+	is := is.New(t)
+	dir := t.TempDir()
+	is.NoErr(os.WriteFile(filepath.Join(dir, "to.txt"), []byte("to"), 0600))
+	is.NoErr(os.Symlink("to.txt", filepath.Join(dir, "from.txt")))
+
+	fsys := os.DirFS(dir)
+	des, err := fs.ReadDir(fsys, ".")
+	is.NoErr(err)
+	is.Equal(len(des), 2)
+
+	is.Equal(des[0].Name(), "from.txt")
+	info, err := des[0].Info()
+	is.NoErr(err)
+	is.Equal(info.Mode(), fs.FileMode(0755|fs.ModeSymlink))
+
+	vde, err := FromEntry("from.txt", des[0])
+	is.NoErr(err)
+	is.Equal(vde.Path, "from.txt")
+	is.Equal(vde.ModTime.IsZero(), false)
+	is.Equal(vde.Mode, fs.FileMode(0755|fs.ModeSymlink))
+	is.Equal(vde.Size, int64(len("to.txt")))
 }

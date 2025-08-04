@@ -1,6 +1,7 @@
 package virt
 
 import (
+	"errors"
 	"hash"
 	"io"
 	"io/fs"
@@ -55,6 +56,10 @@ func (f *File) Entry() *DirEntry {
 		Mode:    f.Mode,
 		ModTime: f.ModTime,
 	}
+}
+
+func (f *File) Size() int64 {
+	return int64(len(f.Data))
 }
 
 // Embed as a string literal.
@@ -159,4 +164,25 @@ func (f *openFile) Seek(offset int64, whence int) (int64, error) {
 	}
 	f.offset = offset
 	return offset, nil
+}
+
+var errNotADirectory = errors.New("not a directory")
+
+func (f *openFile) ReadDir(count int) ([]fs.DirEntry, error) {
+	if !f.IsDir() {
+		return nil, &fs.PathError{Op: "open", Path: f.Path, Err: errNotADirectory}
+	}
+	n := len(f.Entries) - int(f.offset)
+	if count > 0 && n > count {
+		n = count
+	}
+	if n == 0 && count > 0 {
+		return nil, io.EOF
+	}
+	list := make([]fs.DirEntry, n)
+	for i := range list {
+		list[i] = f.Entries[int(f.offset)+i]
+	}
+	f.offset += int64(n)
+	return list, nil
 }

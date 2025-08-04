@@ -233,4 +233,8 @@ func TestListSymlinkLstat(t *testing.T) {
 	// Doesn't follow the symlink
 	is.Equal(info.Mode(), fs.FileMode(0755|fs.ModeSymlink))
 	is.Equal(info.Size(), int64(len("to.txt")))
+
+	link, err := fsys.Readlink("from.txt")
+	is.NoErr(err)
+	is.Equal(link, "to.txt")
 }

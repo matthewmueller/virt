@@ -7,22 +7,35 @@ import (
 	"sort"
 )
 
-// FromFile a file to a virtual file
-func From(fsys fs.FS, path string) (entry *File, err error) {
+// FromFS helps you convert files from a file system to a virtual file.
+type FromFS interface {
+	Open(name string) (fs.File, error)
+	Lstat(name string) (fs.FileInfo, error)
+	Readlink(name string) (string, error)
+}
+
+// From a file to a virtual file
+func From(fsys FromFS, path string) (entry *File, err error) {
+	// Get the stats
+	stat, err := fsys.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if stat.Mode()&fs.ModeSymlink != 0 {
+		return fromSymlink(fsys, path, stat)
+	}
+
 	file, err := fsys.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	// Get the stats
-	stat, err := file.Stat()
-	if err != nil {
-		return nil, err
-	}
-	// Copy the directory data over
+
 	if stat.IsDir() {
 		return fromDir(path, file, stat)
 	}
+
 	return fromFile(path, file, stat)
 }
 
@@ -54,9 +67,22 @@ func FromEntry(path string, de fs.DirEntry) (*DirEntry, error) {
 	}, nil
 }
 
-func fromDir(dirPath string, file fs.File, stat fs.FileInfo) (entry *File, err error) {
+func fromSymlink(fsys FromFS, fpath string, stat fs.FileInfo) (*File, error) {
+	link, err := fsys.Readlink(fpath)
+	if err != nil {
+		return nil, err
+	}
+	return &File{
+		Path:    fpath,
+		Data:    []byte(link),
+		ModTime: stat.ModTime(),
+		Mode:    stat.Mode(),
+	}, nil
+}
+
+func fromDir(fpath string, file fs.File, stat fs.FileInfo) (entry *File, err error) {
 	vdir := &File{
-		Path:    dirPath,
+		Path:    fpath,
 		ModTime: stat.ModTime(),
 		Mode:    stat.Mode(),
 	}
@@ -66,7 +92,7 @@ func fromDir(dirPath string, file fs.File, stat fs.FileInfo) (entry *File, err e
 			return nil, err
 		}
 		for _, de := range des {
-			vde, err := FromEntry(path.Join(dirPath, de.Name()), de)
+			vde, err := FromEntry(path.Join(fpath, de.Name()), de)
 			if err != nil {
 				return nil, err
 			}

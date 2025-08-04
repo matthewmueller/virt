@@ -56,6 +56,20 @@ func (fsys List) Lstat(path string) (fs.FileInfo, error) {
 	return file.Info()
 }
 
+func (fsys List) Readlink(path string) (string, error) {
+	if !fs.ValidPath(path) {
+		return "", &fs.PathError{Op: "Readlink", Path: path, Err: fs.ErrInvalid}
+	}
+	file, ok := fsys.find(path)
+	if !ok {
+		return "", fs.ErrNotExist
+	}
+	if file.Mode&fs.ModeSymlink == 0 {
+		return "", &fs.PathError{Op: "Readlink", Path: path, Err: fs.ErrInvalid}
+	}
+	return string(file.Data), nil
+}
+
 func (fsys List) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "openfile", Path: path, Err: fs.ErrInvalid}
@@ -133,7 +147,7 @@ func (fsys List) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, erro
 	}
 	// Return the synthesized entries as a directory.
 	file.Entries = des
-	return &openDir{file, flag, 0}, nil
+	return &openFile{file, flag, 0}, nil
 }
 
 // Mkdir create a directory.

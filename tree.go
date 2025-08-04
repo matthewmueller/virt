@@ -16,7 +16,14 @@ type Tree map[string]*File
 var _ FS = (Tree)(nil)
 
 func (fsys Tree) Open(path string) (fs.File, error) {
-	return fsys.OpenFile(path, os.O_RDONLY, 0)
+	if !fs.ValidPath(path) {
+		return nil, &fs.PathError{Op: "open", Path: path, Err: fs.ErrInvalid}
+	}
+	file, err := fsys.find(path)
+	if err != nil {
+		return nil, &fs.PathError{Op: "open", Path: path, Err: err}
+	}
+	return &openFile{file, os.O_RDONLY, 0}, nil
 }
 
 func (fsys Tree) Stat(path string) (fs.FileInfo, error) {
@@ -49,6 +56,17 @@ func (fsys Tree) Lstat(path string) (fs.FileInfo, error) {
 	return file.Info()
 }
 
+func (fsys Tree) Readlink(path string) (string, error) {
+	file, err := fsys.find(path)
+	if err != nil {
+		return "", &fs.PathError{Op: "Readlink", Path: path, Err: err}
+	}
+	if file.Mode&fs.ModeSymlink == 0 {
+		return "", &fs.PathError{Op: "Readlink", Path: path, Err: fs.ErrInvalid}
+	}
+	return string(file.Data), nil
+}
+
 func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "Open", Path: path, Err: fs.ErrInvalid}
@@ -64,9 +82,6 @@ func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, erro
 	file, err := fsys.find(path)
 	if err != nil {
 		return nil, &fs.PathError{Op: "OpenFile", Path: path, Err: err}
-	}
-	if file.IsDir() {
-		return &openDir{file, flag, 0}, nil
 	}
 	return &openFile{file, flag, 0}, nil
 }
