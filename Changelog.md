@@ -1,3 +1,7 @@
+# 0.0.14 / 2025-08-04
+
+- better support for symlinks. add readlink to fs
+
 # 0.0.13 / 2025-08-04
 
 - support fsys.Stat and fsys.LStat in virt.FS
