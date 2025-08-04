@@ -18,6 +18,20 @@ func (dir OS) Open(name string) (fs.File, error) {
 	return dir.OpenFile(name, os.O_RDONLY, 0)
 }
 
+func (dir OS) Stat(name string) (fs.FileInfo, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "Stat", Path: name, Err: fs.ErrInvalid}
+	}
+	return os.Stat(filepath.Join(string(dir), name))
+}
+
+func (dir OS) Lstat(name string) (fs.FileInfo, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "Lstat", Path: name, Err: fs.ErrInvalid}
+	}
+	return os.Lstat(filepath.Join(string(dir), name))
+}
+
 func (dir OS) OpenFile(name string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: fs.ErrInvalid}

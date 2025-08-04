@@ -179,3 +179,58 @@ func TestListSub(t *testing.T) {
 	is.Equal(errors.Is(err, fs.ErrNotExist), true)
 	is.Equal(code, nil)
 }
+
+func TestListSymlinkStat(t *testing.T) {
+	is := is.New(t)
+	fsys := virt.List{
+		&virt.File{
+			Path: "from.txt",
+			Data: []byte("to.txt"),
+			Mode: 0755 | fs.ModeSymlink,
+		},
+		&virt.File{
+			Path: "to.txt",
+			Data: []byte("to"),
+			Mode: 0600,
+		},
+	}
+
+	// Direct Stat
+	info, err := fsys.Stat("from.txt")
+	is.NoErr(err)
+	is.Equal(info.Name(), "from.txt")
+	// Follows the symlink
+	is.Equal(info.Mode(), fs.FileMode(0600))
+	is.Equal(info.Size(), int64(2))
+
+	// Through FS
+	info, err = fs.Stat(fsys, "from.txt")
+	is.NoErr(err)
+	is.Equal(info.Name(), "from.txt")
+	// Follows the symlink
+	is.Equal(info.Mode(), fs.FileMode(0600))
+	is.Equal(info.Size(), int64(2))
+}
+
+func TestListSymlinkLstat(t *testing.T) {
+	is := is.New(t)
+	fsys := virt.List{
+		&virt.File{
+			Path: "from.txt",
+			Data: []byte("to.txt"),
+			Mode: 0755 | fs.ModeSymlink,
+		},
+		&virt.File{
+			Path: "to.txt",
+			Data: []byte("to"),
+			Mode: 0600,
+		},
+	}
+
+	info, err := fsys.Lstat("from.txt")
+	is.NoErr(err)
+	is.Equal(info.Name(), "from.txt")
+	// Doesn't follow the symlink
+	is.Equal(info.Mode(), fs.FileMode(0755|fs.ModeSymlink))
+	is.Equal(info.Size(), int64(len("to.txt")))
+}

@@ -11,6 +11,7 @@ type Map map[string]string
 // Map only implements fs.FS because we can't make directories
 // or store permission bits in a map.
 var _ fs.FS = (Map)(nil)
+var _ fs.StatFS = (Map)(nil)
 
 func (m Map) Open(name string) (fs.File, error) {
 	if !fs.ValidPath(name) {
@@ -23,10 +24,17 @@ func (m Map) Open(name string) (fs.File, error) {
 	return toTree(m).Open(name)
 }
 
+func (m Map) Stat(name string) (fs.FileInfo, error) {
+	return toTree(m).Stat(name)
+}
+
 func toTree(m map[string]string) Tree {
 	tree := Tree{}
 	for path, data := range m {
-		tree[path] = &File{Data: []byte(data)}
+		tree[path] = &File{
+			Data: []byte(data),
+			Mode: fs.FileMode(0644),
+		}
 	}
 	return tree
 }

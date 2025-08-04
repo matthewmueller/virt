@@ -20,6 +20,42 @@ func (fsys List) Open(path string) (fs.File, error) {
 	return fsys.OpenFile(path, os.O_RDONLY, 0)
 }
 
+func (fsys List) Stat(path string) (fs.FileInfo, error) {
+	if !fs.ValidPath(path) {
+		return nil, &fs.PathError{Op: "Stat", Path: path, Err: fs.ErrInvalid}
+	}
+	file, ok := fsys.find(path)
+	if !ok {
+		return nil, fs.ErrNotExist
+	}
+	if file.Mode&fs.ModeSymlink != 0 {
+		link, err := fsys.Stat(string(file.Data))
+		if err != nil {
+			return nil, &fs.PathError{Op: "Stat", Path: path, Err: err}
+		}
+		// Stat returns the original name, but size, mode, and modTime of the target
+		return &fileInfo{
+			path:    path,
+			size:    link.Size(),
+			mode:    link.Mode(),
+			modTime: link.ModTime(),
+		}, nil
+	}
+	// If the file is a symlink, we need to resolve it.
+	return file.Info()
+}
+
+func (fsys List) Lstat(path string) (fs.FileInfo, error) {
+	if !fs.ValidPath(path) {
+		return nil, &fs.PathError{Op: "Stat", Path: path, Err: fs.ErrInvalid}
+	}
+	file, ok := fsys.find(path)
+	if !ok {
+		return nil, fs.ErrNotExist
+	}
+	return file.Info()
+}
+
 func (fsys List) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "openfile", Path: path, Err: fs.ErrInvalid}

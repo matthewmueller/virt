@@ -20,8 +20,14 @@ func TestMap(t *testing.T) {
 	is.NoErr(err)
 	is.Equal(string(code), `<h1>index</h1>`)
 
+	stat, err := fs.Stat(fsys, "bud/view/index.svelte")
+	is.NoErr(err)
+	is.Equal(stat.Name(), "index.svelte")
+	is.Equal(stat.IsDir(), false)
+	is.Equal(stat.Mode(), fs.FileMode(0644))
+
 	// stat bud/
-	stat, err := fs.Stat(fsys, "bud")
+	stat, err = fs.Stat(fsys, "bud")
 	is.NoErr(err)
 	is.Equal(stat.Name(), "bud")
 	is.Equal(stat.IsDir(), true)

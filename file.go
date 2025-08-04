@@ -123,6 +123,7 @@ func (f *openFile) Close() error {
 }
 
 func (f *openFile) Write(p []byte) (int, error) {
+	// TODO: throw an error if the file is not writable
 	n := copy(f.Data[f.offset:], p)
 	f.offset += int64(n)
 	return n, nil

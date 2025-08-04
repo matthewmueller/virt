@@ -10,6 +10,8 @@ import (
 // methods for creating and removing files and directories.
 type FS interface {
 	fs.FS
+	fs.StatFS
+	Lstat(name string) (fs.FileInfo, error)
 	OpenFile(name string, flag int, perm fs.FileMode) (RWFile, error)
 	MkdirAll(path string, perm fs.FileMode) error
 	WriteFile(name string, data []byte, perm fs.FileMode) error

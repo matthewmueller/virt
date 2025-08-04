@@ -23,6 +23,20 @@ func (s *subFS) Open(name string) (fs.File, error) {
 	return s.OpenFile(name, os.O_RDONLY, 0)
 }
 
+func (s *subFS) Stat(name string) (fs.FileInfo, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "Stat", Path: name, Err: fs.ErrInvalid}
+	}
+	return s.fs.Stat(path.Join(s.dir, name))
+}
+
+func (s *subFS) Lstat(name string) (fs.FileInfo, error) {
+	if !fs.ValidPath(name) {
+		return nil, &fs.PathError{Op: "Lstat", Path: name, Err: fs.ErrInvalid}
+	}
+	return s.fs.Lstat(path.Join(s.dir, name))
+}
+
 func (s *subFS) OpenFile(name string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(name) {
 		return nil, &fs.PathError{Op: "OpenFile", Path: name, Err: fs.ErrInvalid}

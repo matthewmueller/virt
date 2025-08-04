@@ -19,22 +19,67 @@ func (fsys Tree) Open(path string) (fs.File, error) {
 	return fsys.OpenFile(path, os.O_RDONLY, 0)
 }
 
+func (fsys Tree) Stat(path string) (fs.FileInfo, error) {
+	file, err := fsys.find(path)
+	if err != nil {
+		return nil, err
+	}
+	// Recursively resolve symlinks
+	if file.Mode&fs.ModeSymlink != 0 {
+		target, err := fsys.Stat(string(file.Data))
+		if err != nil {
+			return nil, &fs.PathError{Op: "Stat", Path: path, Err: err}
+		}
+		// Stat returns the original name, but size, mode, and modTime of the target
+		return &fileInfo{
+			path:    path,
+			size:    target.Size(),
+			mode:    target.Mode(),
+			modTime: target.ModTime(),
+		}, nil
+	}
+	return file.Info()
+}
+
+func (fsys Tree) Lstat(path string) (fs.FileInfo, error) {
+	file, err := fsys.find(path)
+	if err != nil {
+		return nil, err
+	}
+	return file.Info()
+}
+
 func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, error) {
 	if !fs.ValidPath(path) {
 		return nil, &fs.PathError{Op: "Open", Path: path, Err: fs.ErrInvalid}
-	} else if flag != os.O_RDONLY {
+	}
+	// TODO: Support more flags in the future
+	if flag != os.O_RDONLY {
 		return nil, &fs.PathError{
 			Op:   "openfile",
 			Path: path,
 			Err:  errors.New("flag not currently supported"),
 		}
 	}
+	file, err := fsys.find(path)
+	if err != nil {
+		return nil, &fs.PathError{Op: "OpenFile", Path: path, Err: err}
+	}
+	if file.IsDir() {
+		return &openDir{file, flag, 0}, nil
+	}
+	return &openFile{file, flag, 0}, nil
+}
+
+// Find a file in the Tree filesystem. subdirectories are synthesized if they
+// don't exist.
+func (fsys Tree) find(path string) (*File, error) {
 	file, ok := fsys[path]
 	if ok {
 		// Can be either a file or a empty directory
 		file.Path = path
 		if !file.IsDir() {
-			return &openFile{file, flag, 0}, nil
+			return file, nil
 		}
 	}
 
@@ -94,7 +139,7 @@ func (fsys Tree) OpenFile(path string, flag int, perm fs.FileMode) (RWFile, erro
 	}
 	// Return the synthesized entries as a directory.
 	file.Entries = des
-	return &openDir{file, flag, 0}, nil
+	return file, nil
 }
 
 // Mkdir create a directory.
